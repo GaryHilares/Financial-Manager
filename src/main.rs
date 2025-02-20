@@ -1,6 +1,9 @@
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
+use model::{InflightRecord, RecordCollection};
 use regex::Regex;
+
+mod model;
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
@@ -12,29 +15,6 @@ fn main() -> eframe::Result {
         options,
         Box::new(|_cc| Ok(Box::<MyApp>::default())),
     )
-}
-
-struct Record {
-    date: String,
-    description: String,
-    earnings_in_cents: i32,
-    spendings_in_cents: i32,
-}
-
-impl Record {
-    fn new(
-        date: String,
-        description: String,
-        earnings_in_cents: i32,
-        spendings_in_cents: i32,
-    ) -> Self {
-        Record {
-            date,
-            description,
-            earnings_in_cents,
-            spendings_in_cents,
-        }
-    }
 }
 
 struct FormInfo {
@@ -54,7 +34,7 @@ impl FormInfo {
         }
     }
 
-    pub fn try_to_parse_record(&self) -> Result<Record, &str> {
+    pub fn try_to_parse_record(&self) -> Result<InflightRecord, &str> {
         let re = Regex::new("([0-9]+)-([0-9]{2})-([0-9]{2})").unwrap();
         if re.captures(&self.date).is_none() {
             return Err("Invalid date found.");
@@ -70,7 +50,7 @@ impl FormInfo {
             Err(_) => return Err("Invalid spendings amount found."),
         };
 
-        return Ok(Record::new(
+        return Ok(InflightRecord::new(
             self.date.to_owned(),
             self.description.to_owned(),
             earnings,
@@ -80,7 +60,7 @@ impl FormInfo {
 }
 
 struct MyApp {
-    records: Vec<Record>,
+    records: RecordCollection,
     form_info: FormInfo,
     error_message: Option<String>,
 }
@@ -88,12 +68,7 @@ struct MyApp {
 impl Default for MyApp {
     fn default() -> Self {
         Self {
-            records: vec![Record::new(
-                "2025-02-15".to_owned(),
-                "Little treat :)".to_owned(),
-                0i32,
-                8i32,
-            )],
+            records: RecordCollection::new(),
             form_info: FormInfo::new(),
             error_message: None,
         }
@@ -124,7 +99,7 @@ impl eframe::App for MyApp {
                 match self.form_info.try_to_parse_record() {
                     Ok(result) => {
                         self.form_info = FormInfo::new();
-                        self.records.push(result);
+                        self.records.add_record(result);
                         self.error_message = None;
                     }
                     Err(error) => self.error_message = Some(error.to_owned()),
@@ -157,9 +132,7 @@ impl eframe::App for MyApp {
                     });
                 })
                 .body(|mut body| {
-                    let mut balance = 0;
-                    self.records.iter().for_each(|record| {
-                        balance += record.earnings_in_cents - record.spendings_in_cents;
+                    self.records.list_records().iter().for_each(|record| {
                         body.row(30.0, |mut row| {
                             row.col(|ui| {
                                 ui.label(&record.date);
@@ -174,7 +147,7 @@ impl eframe::App for MyApp {
                                 ui.label(record.spendings_in_cents.to_string());
                             });
                             row.col(|ui| {
-                                ui.label(balance.to_string());
+                                ui.label(record.get_remaining_balance().to_string());
                             });
                         });
                     });
