@@ -1,3 +1,24 @@
+pub fn cents_to_dollar_string(cents: i32) -> String {
+    let decimals = cents % 100;
+    let units = cents / 100;
+    return format!("{}.{:0>2}", units, decimals);
+}
+
+#[cfg(test)]
+mod cents_to_dollar_string_tests {
+    use super::cents_to_dollar_string;
+
+    #[test]
+    fn should_add_decimal_cents() {
+        assert_eq!("4.07", cents_to_dollar_string(407));
+    }
+
+    #[test]
+    fn should_pad_with_zeroes() {
+        assert_eq!("0.00", cents_to_dollar_string(0));
+    }
+}
+
 pub struct InflightRecord {
     pub date: String,
     pub description: String,
