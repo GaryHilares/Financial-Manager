@@ -17,16 +17,16 @@ fn main() -> eframe::Result {
 struct Record {
     date: String,
     description: String,
-    earnings_in_cents: u32,
-    spendings_in_cents: u32,
+    earnings_in_cents: i32,
+    spendings_in_cents: i32,
 }
 
 impl Record {
     fn new(
         date: String,
         description: String,
-        earnings_in_cents: u32,
-        spendings_in_cents: u32,
+        earnings_in_cents: i32,
+        spendings_in_cents: i32,
     ) -> Self {
         Record {
             date,
@@ -60,22 +60,22 @@ impl FormInfo {
             return Err("Invalid date found.");
         }
 
-        let earnings = match self.earnings.parse::<u32>() {
+        let earnings = match self.earnings.parse::<i32>() {
             Ok(num) => num,
             Err(_) => return Err("Invalid earnings amount found."),
         };
 
-        let spendings = match self.spendings.parse::<u32>() {
+        let spendings = match self.spendings.parse::<i32>() {
             Ok(num) => num,
             Err(_) => return Err("Invalid spendings amount found."),
         };
 
-        return Ok(Record {
-            date: self.date.to_owned(),
-            description: self.description.to_owned(),
-            earnings_in_cents: earnings,
-            spendings_in_cents: spendings,
-        });
+        return Ok(Record::new(
+            self.date.to_owned(),
+            self.description.to_owned(),
+            earnings,
+            spendings,
+        ));
     }
 }
 
@@ -91,8 +91,8 @@ impl Default for MyApp {
             records: vec![Record::new(
                 "2025-02-15".to_owned(),
                 "Little treat :)".to_owned(),
-                0u32,
-                8u32,
+                0i32,
+                8i32,
             )],
             form_info: FormInfo::new(),
             error_message: None,
