@@ -138,6 +138,7 @@ impl eframe::App for MyApp {
                 .column(Column::auto())
                 .column(Column::auto())
                 .column(Column::auto())
+                .column(Column::auto())
                 .header(20.0, |mut header| {
                     header.col(|ui| {
                         ui.heading("Date");
@@ -151,9 +152,14 @@ impl eframe::App for MyApp {
                     header.col(|ui| {
                         ui.heading("Spendings");
                     });
+                    header.col(|ui| {
+                        ui.heading("Remaining balance");
+                    });
                 })
                 .body(|mut body| {
+                    let mut balance = 0;
                     self.records.iter().for_each(|record| {
+                        balance += record.earnings_in_cents - record.spendings_in_cents;
                         body.row(30.0, |mut row| {
                             row.col(|ui| {
                                 ui.label(&record.date);
@@ -166,6 +172,9 @@ impl eframe::App for MyApp {
                             });
                             row.col(|ui| {
                                 ui.label(record.spendings_in_cents.to_string());
+                            });
+                            row.col(|ui| {
+                                ui.label(balance.to_string());
                             });
                         });
                     });
