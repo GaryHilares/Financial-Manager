@@ -1,6 +1,6 @@
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
-use model::{InflightRecord, RecordCollection};
+use model::{cents_to_dollar_string, InflightRecord, RecordCollection};
 use regex::Regex;
 
 mod model;
@@ -141,13 +141,13 @@ impl eframe::App for MyApp {
                                 ui.label(&record.description);
                             });
                             row.col(|ui| {
-                                ui.label(record.earnings_in_cents.to_string());
+                                ui.label(cents_to_dollar_string(record.earnings_in_cents));
                             });
                             row.col(|ui| {
-                                ui.label(record.spendings_in_cents.to_string());
+                                ui.label(cents_to_dollar_string(record.spendings_in_cents));
                             });
                             row.col(|ui| {
-                                ui.label(record.get_remaining_balance().to_string());
+                                ui.label(cents_to_dollar_string(record.get_remaining_balance()));
                             });
                         });
                     });
