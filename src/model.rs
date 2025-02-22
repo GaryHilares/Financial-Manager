@@ -21,6 +21,139 @@ mod cents_to_dollar_string_tests {
     }
 }
 
+#[derive(PartialEq)]
+enum ParsingPhase {
+    Prewhitespace,
+    Units,
+    Decimals,
+    Postwhitespace,
+}
+
+pub fn parse_dollars_as_cents(dollars: &str) -> Result<i32, ()> {
+    let mut cent_digits = 0;
+    let mut units = 0i32;
+    let mut cents = 0i32;
+    let mut state = ParsingPhase::Prewhitespace;
+    for c in dollars.chars() {
+        match c {
+            '.' => match &state {
+                ParsingPhase::Prewhitespace => state = ParsingPhase::Decimals,
+                ParsingPhase::Units => state = ParsingPhase::Decimals,
+                ParsingPhase::Decimals => return Err(()),
+                ParsingPhase::Postwhitespace => return Err(()),
+            },
+            ' ' => match &state {
+                ParsingPhase::Prewhitespace => (),
+                ParsingPhase::Units => state = ParsingPhase::Postwhitespace,
+                ParsingPhase::Decimals => state = ParsingPhase::Postwhitespace,
+                ParsingPhase::Postwhitespace => (),
+            },
+            '0'..='9' => match &state {
+                ParsingPhase::Prewhitespace => {
+                    state = ParsingPhase::Units;
+                    units += c.to_digit(10).unwrap() as i32;
+                }
+                ParsingPhase::Units => {
+                    units = match units.checked_mul(10) {
+                        Some(result) => result,
+                        None => return Err(()),
+                    };
+                    units += c.to_digit(10).unwrap() as i32;
+                }
+                ParsingPhase::Decimals => {
+                    if cent_digits < 2 {
+                        cent_digits += 1;
+                        cents += c.to_digit(10).unwrap() as i32;
+                        if cent_digits == 1 {
+                            cents *= 10;
+                        }
+                    }
+                }
+                ParsingPhase::Postwhitespace => return Err(()),
+            },
+            _ => return Err(()),
+        }
+    }
+    if state == ParsingPhase::Prewhitespace {
+        return Err(());
+    }
+    Ok(units * 100 + cents)
+}
+
+#[cfg(test)]
+mod parse_dollars_as_cents_tests {
+    use super::parse_dollars_as_cents;
+
+    #[test]
+    fn should_accept_exactly_two_decimal_digits() {
+        let result = parse_dollars_as_cents("19.55");
+        assert!(result.is_ok());
+        assert_eq!(1955, result.unwrap());
+    }
+
+    #[test]
+    fn should_strip_initial_and_ending_whitespace() {
+        let result = parse_dollars_as_cents("  37.10 ");
+        assert!(result.is_ok());
+        assert_eq!(3710, result.unwrap());
+    }
+
+    #[test]
+    fn should_accept_no_decimal_point() {
+        let result = parse_dollars_as_cents("6");
+        assert!(result.is_ok());
+        assert_eq!(600, result.unwrap());
+    }
+
+    #[test]
+    fn should_round_to_nearest_cent() {
+        let result = parse_dollars_as_cents("1.1241421");
+        assert!(result.is_ok());
+        assert_eq!(112, result.unwrap());
+    }
+
+    #[test]
+    fn should_pad_to_two_decimal_digits() {
+        let result = parse_dollars_as_cents("1.4");
+        assert!(result.is_ok());
+        assert_eq!(140, result.unwrap());
+    }
+
+    #[test]
+    fn should_interpret_starting_dot_as_zero() {
+        let result = parse_dollars_as_cents(".10");
+        assert!(result.is_ok());
+        assert_eq!(10, result.unwrap());
+    }
+
+    #[test]
+    fn should_interpret_ending_dot_as_zero() {
+        let result = parse_dollars_as_cents("2.");
+        assert!(result.is_ok());
+        assert_eq!(200, result.unwrap());
+    }
+
+    #[test]
+    fn should_reject_empty_string() {
+        assert!(parse_dollars_as_cents("").is_err())
+    }
+
+    #[test]
+    fn should_reject_non_digit_character() {
+        assert!(parse_dollars_as_cents("34,2C").is_err())
+    }
+
+    #[test]
+    fn should_reject_middle_whitespace() {
+        assert!(parse_dollars_as_cents("3 4,2").is_err())
+    }
+
+    #[test]
+    fn should_reject_two_decimal_points() {
+        assert!(parse_dollars_as_cents("34.21.56").is_err())
+    }
+}
+
 pub struct InflightRecord {
     pub date: String,
     pub description: String,

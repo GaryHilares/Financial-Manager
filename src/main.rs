@@ -1,6 +1,9 @@
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
-use model::{cents_to_dollar_string, InflightRecord, RecordCollection, SqliteDatabaseConnection};
+use model::{
+    cents_to_dollar_string, parse_dollars_as_cents, InflightRecord, RecordCollection,
+    SqliteDatabaseConnection,
+};
 use regex::Regex;
 
 mod model;
@@ -40,12 +43,12 @@ impl FormInfo {
             return Err("Invalid date found.");
         }
 
-        let earnings = match self.earnings.parse::<i32>() {
+        let earnings = match parse_dollars_as_cents(&self.earnings) {
             Ok(num) => num,
             Err(_) => return Err("Invalid earnings amount found."),
         };
 
-        let spendings = match self.spendings.parse::<i32>() {
+        let spendings = match parse_dollars_as_cents(&self.spendings) {
             Ok(num) => num,
             Err(_) => return Err("Invalid spendings amount found."),
         };
