@@ -313,9 +313,11 @@ mod record_collection_tests {
 
 mod persistence_integration_tests {
     use super::{InflightRecord, Record, RecordCollection, SqliteDatabaseConnection};
+    use std::fs;
 
     #[test]
     pub fn sqlite_persists_records() {
+        fs::remove_file("./data/financial_records_tests.db").expect("Could not remove file");
         let db_handler =
             SqliteDatabaseConnection::create_or_open("./data/financial_records_tests.db");
         let mut record_collection = RecordCollection::new(db_handler);
