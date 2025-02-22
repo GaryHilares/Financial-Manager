@@ -1,3 +1,4 @@
+use chrono;
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 use model::{
@@ -30,10 +31,13 @@ struct FormInfo {
 impl FormInfo {
     pub fn new() -> FormInfo {
         FormInfo {
-            date: "".to_owned(),
+            date: chrono::offset::Local::now()
+                .date_naive()
+                .format("%Y-%m-%d")
+                .to_string(),
             description: "".to_owned(),
-            earnings: "".to_owned(),
-            spendings: "".to_owned(),
+            earnings: "0".to_owned(),
+            spendings: "0".to_owned(),
         }
     }
 

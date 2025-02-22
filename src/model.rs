@@ -444,6 +444,7 @@ mod record_collection_tests {
     }
 }
 
+#[cfg(test)]
 mod persistence_integration_tests {
     use super::{InflightRecord, Record, RecordCollection, SqliteDatabaseConnection};
     use std::fs;
