@@ -1,6 +1,6 @@
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
-use model::{cents_to_dollar_string, InflightRecord, RecordCollection};
+use model::{cents_to_dollar_string, InflightRecord, RecordCollection, SqliteDatabaseConnection};
 use regex::Regex;
 
 mod model;
@@ -60,7 +60,7 @@ impl FormInfo {
 }
 
 struct MyApp {
-    records: RecordCollection,
+    records: RecordCollection<SqliteDatabaseConnection>,
     form_info: FormInfo,
     error_message: Option<String>,
 }
@@ -68,7 +68,9 @@ struct MyApp {
 impl Default for MyApp {
     fn default() -> Self {
         Self {
-            records: RecordCollection::new(),
+            records: RecordCollection::new(SqliteDatabaseConnection::create_or_open(
+                "./data/financial_records.db",
+            )),
             form_info: FormInfo::new(),
             error_message: None,
         }

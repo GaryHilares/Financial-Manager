@@ -7,3 +7,4 @@ edition = "2021"
 regex = ">= 1.11.1, < 2.0.0"
 eframe = ">= 0.31.0, < 1.0.0"
 egui_extras = ">= 0.31.0, < 1.0.0"
+rusqlite = { version = ">= 0.33.0, < 1.0.0", features = ["bundled"] }
