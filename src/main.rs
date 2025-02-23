@@ -141,7 +141,7 @@ impl eframe::App for MyApp {
                     });
                 })
                 .body(|mut body| {
-                    self.records.list_records().iter().for_each(|record| {
+                    self.records.list_records().iter().rev().for_each(|record| {
                         body.row(30.0, |mut row| {
                             row.col(|ui| {
                                 ui.label(&record.date);
